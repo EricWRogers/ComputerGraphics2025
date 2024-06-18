@@ -5,10 +5,15 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_SOURCE_DIR}/dist/${CMAKE_SYSTEM_NAME}>)
 set(ASSETS_DIR_NAME assets)
 
+set(ASSIMP_BUILD_DRACO true)
+
 add_subdirectory(external/GL)
 add_subdirectory(external/glm)
 add_subdirectory(external/SDL)
 add_subdirectory(external/stb)
+add_subdirectory(external/assimp)
+
+set(ASSIMP_BUILD_DRACO true)
 
 # Set where the ImGui files are stored
 set(IMGUI_PATH  "external/imgui")
@@ -29,6 +34,7 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         glm
         stb
+        assimp
         libglew_static
         SDL2main
         SDL2-static
@@ -39,6 +45,7 @@ target_include_directories(${PROJECT_NAME}
     PRIVATE
         glm
         stb
+        assimp
         SDL2main
         SDL2-static
         imgui

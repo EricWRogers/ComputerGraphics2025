@@ -2,53 +2,25 @@
 #include <vector>
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
+
+#include "LearnOpenGL/shader.hpp"
+#include "LearnOpenGL/camera.hpp"
+#include "LearnOpenGL/animator.hpp"
+#include "LearnOpenGL/model_animation.hpp"
+
 #include "TinyGLTF.h"
 
-// Shader sources
-const char* vertexShaderSource = R"(
-#version 330 core
-layout(location = 0) in vec3 position;
-layout(location = 1) in vec3 normal;
-layout(location = 2) in vec2 texCoord;
-layout(location = 3) in ivec4 boneIDs;
-layout(location = 4) in vec4 weights;
+// settings
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-uniform mat4 bones[100]; // Assume a maximum of 100 bones for simplicity
-
-void main() {
-    mat4 boneTransform = bones[boneIDs[0]] * weights[0] +
-                         bones[boneIDs[1]] * weights[1] +
-                         bones[boneIDs[2]] * weights[2] +
-                         bones[boneIDs[3]] * weights[3];
-
-    vec4 pos = boneTransform * vec4(position, 1.0);
-    gl_Position = projection * view * model * pos;
-}
-)";
-
-const char* fragmentShaderSource = R"(
-#version 330 core
-out vec4 color;
-
-void main() {
-    color = vec4(1.0, 0.5, 0.2, 1.0);
-}
-)";
-
-// Function prototypes
-GLuint LoadShader(const char* source, GLenum type);
-void CheckShaderLinking(GLuint shaderProgram);
-void LoadModel(tinygltf::Model &model, const std::string &filename);
-void InitializeBuffers(const tinygltf::Model &model, std::vector<GLuint> &vbos, std::vector<GLuint> &vaos);
-void DrawModel(const tinygltf::Model &model, const std::vector<GLuint> &vaos);
-void UpdateBoneTransforms(const tinygltf::Model &model, std::vector<glm::mat4> &boneTransforms, float animationTime, int animationIndex);
+// camera
+Camera camera(glm::vec3(0.0f, 0.0f, 30.0f));
 
 int main() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -88,38 +60,32 @@ int main() {
         return -1;
     }
 
-    glEnable(GL_DEPTH_TEST);
+    // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
+	stbi_set_flip_vertically_on_load(true);
 
-    GLuint vertexShader = LoadShader(vertexShaderSource, GL_VERTEX_SHADER);
-    GLuint fragmentShader = LoadShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
+	// configure global opengl state
+	// -----------------------------
+	glEnable(GL_DEPTH_TEST);
 
-    GLuint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    CheckShaderLinking(shaderProgram);
+	// build and compile shaders
+	// -------------------------
+	Shader ourShader("assets/shaders/anim_model.vs", "assets/shaders/anim_model.fs");
 
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    tinygltf::Model model;
-    LoadModel(model, "assets/CesiumMan.gltf");
-
-    std::vector<GLuint> vbos;
-    std::vector<GLuint> vaos(model.meshes.size());
-
-    InitializeBuffers(model, vbos, vaos);
+	// load models
+	// -----------
+	Model ourModel("assets/vampire/dancing_vampire.dae");
+	Animation danceAnimation("assets/vampire/dancing_vampire.dae",&ourModel);
+	Animator animator(&danceAnimation);
 
     glm::mat4 modelMatrix = glm::mat4(1.0f);
-    glm::mat4 viewMatrix = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 viewMatrix = glm::lookAt(glm::vec3(3.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
     std::vector<glm::mat4> boneTransforms(100, glm::mat4(1.0f));
 
     bool quit = false;
     SDL_Event event;
-    float animationTime = 0.0f;
-    int animationIndex = 0;  // Change this to the index of the animation you want to play
+    float lastTime = SDL_GetTicks() / 1000.0f;
 
     while (!quit) {
         while (SDL_PollEvent(&event)) {
@@ -128,40 +94,40 @@ int main() {
             }
         }
 
+        float currentTime = SDL_GetTicks() / 1000.0f;
+        float deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
+        animator.UpdateAnimation(deltaTime);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
+        ourShader.use();
 
-        GLuint modelLoc = glGetUniformLocation(shaderProgram, "model");
-        GLuint viewLoc = glGetUniformLocation(shaderProgram, "view");
-        GLuint projLoc = glGetUniformLocation(shaderProgram, "projection");
-        GLuint bonesLoc = glGetUniformLocation(shaderProgram, "bones");
+		// view/projection transformations
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		glm::mat4 view = camera.GetViewMatrix();
+		ourShader.setMat4("projection", projection);
+		ourShader.setMat4("view", view);
 
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+        auto transforms = animator.GetFinalBoneMatrices();
+		for (int i = 0; i < transforms.size(); ++i)
+			ourShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
 
-        UpdateBoneTransforms(model, boneTransforms, animationTime, animationIndex);
-        glUniformMatrix4fv(bonesLoc, boneTransforms.size(), GL_FALSE, glm::value_ptr(boneTransforms[0]));
 
-        DrawModel(model, vaos);
+		// render the loaded model
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, -0.4f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(4.0f));	// it's a bit too big for our scene, so scale it down
+		ourShader.setMat4("model", model);
+		ourModel.Draw(ourShader);
 
         SDL_GL_SwapWindow(window);
-
-        animationTime += 0.016f; // Advance the animation time by 1/60th of a second
 
         GLenum err;
         while ((err = glGetError()) != GL_NO_ERROR) {
             std::cerr << "OpenGL error: " << err << std::endl;
         }
-    }
-
-    // Cleanup
-    for (GLuint vbo : vbos) {
-        glDeleteBuffers(1, &vbo);
-    }
-    for (GLuint vao : vaos) {
-        glDeleteVertexArrays(1, &vao);
     }
 
     SDL_GL_DeleteContext(glContext);
@@ -259,7 +225,10 @@ void InitializeBuffers(const tinygltf::Model &model, std::vector<GLuint> &vbos, 
                 if (attribLocation != -1) {
                     glEnableVertexAttribArray(attribLocation);
 
+                    std::cout << attribLocation << std::endl;
+
                     if (attrib.first == "JOINTS_0") {
+                        std::cout << "Attribi" << std::endl;
                         glVertexAttribIPointer(attribLocation, size, accessor.componentType, bufferView.byteStride, (const void*)(accessor.byteOffset + bufferView.byteOffset));
                     } else {
                         glVertexAttribPointer(attribLocation, size, accessor.componentType, accessor.normalized ? GL_TRUE : GL_FALSE, bufferView.byteStride, (const void*)(accessor.byteOffset + bufferView.byteOffset));
