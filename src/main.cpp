@@ -75,8 +75,9 @@ int main() {
 
 	// load models
 	// -----------
-	Model model("assets/vampire/dancing_vampire.dae");
-	Animation danceAnimation("assets/vampire/dancing_vampire.dae",&model);
+	//Model model("assets/vampire/dancing_vampire.dae");
+    Model model("assets/CesiumMan.gltf");
+	Animation danceAnimation("assets/CesiumMan.gltf",&model);
 	Animator animator(&danceAnimation);
 
     glm::mat4 modelMatrix = glm::mat4(1.0f);
