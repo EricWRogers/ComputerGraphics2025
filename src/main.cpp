@@ -8,8 +8,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-#include "LearnOpenGL/shader.hpp"
-#include "LearnOpenGL/camera.hpp"
+#include "Canis/Shader.hpp"
+#include "Canis/Camera.hpp"
+
 #include "LearnOpenGL/animator.hpp"
 #include "LearnOpenGL/model_animation.hpp"
 
@@ -20,9 +21,10 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 30.0f));
+Canis::Camera camera(glm::vec3(0.0f, 0.0f, 30.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f);
 
 int main() {
+    camera.Zoom = 45.0f;
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
         return -1;
@@ -69,12 +71,12 @@ int main() {
 
 	// build and compile shaders
 	// -------------------------
-	Shader ourShader("assets/shaders/anim_model.vs", "assets/shaders/anim_model.fs");
+	Canis::Shader shader("assets/shaders/anim_model.vs", "assets/shaders/anim_model.fs");
 
 	// load models
 	// -----------
-	Model ourModel("assets/vampire/dancing_vampire.dae");
-	Animation danceAnimation("assets/vampire/dancing_vampire.dae",&ourModel);
+	Model model("assets/vampire/dancing_vampire.dae");
+	Animation danceAnimation("assets/vampire/dancing_vampire.dae",&model);
 	Animator animator(&danceAnimation);
 
     glm::mat4 modelMatrix = glm::mat4(1.0f);
@@ -102,25 +104,25 @@ int main() {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        ourShader.use();
+        shader.Use();
 
 		// view/projection transformations
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		glm::mat4 view = camera.GetViewMatrix();
-		ourShader.setMat4("projection", projection);
-		ourShader.setMat4("view", view);
+		shader.SetMat4("projection", projection);
+		shader.SetMat4("view", view);
 
         auto transforms = animator.GetFinalBoneMatrices();
 		for (int i = 0; i < transforms.size(); ++i)
-			ourShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+			shader.SetMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
 
 
 		// render the loaded model
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, -0.4f, 0.0f)); // translate it down so it's at the center of the scene
-		model = glm::scale(model, glm::vec3(4.0f));	// it's a bit too big for our scene, so scale it down
-		ourShader.setMat4("model", model);
-		ourModel.Draw(ourShader);
+		glm::mat4 transform = glm::mat4(1.0f);
+		transform = glm::translate(transform, glm::vec3(0.0f, -0.4f, 0.0f)); // translate it down so it's at the center of the scene
+		transform = glm::scale(transform, glm::vec3(4.0f));	// it's a bit too big for our scene, so scale it down
+		shader.SetMat4("model", transform);
+		model.Draw(shader);
 
         SDL_GL_SwapWindow(window);
 

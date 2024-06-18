@@ -8,7 +8,7 @@
 #include <assimp/postprocess.h>
 
 #include "mesh.hpp"
-#include "shader.hpp"
+#include "../Canis/Shader.hpp"
 
 #include <string>
 #include <fstream>
@@ -17,9 +17,18 @@
 #include <map>
 #include <vector>
 #include "assimp_glm_helper.hpp"
-#include "animdata.hpp"
 
 using namespace std;
+
+struct BoneInfo
+{
+	//id is index in finalBoneMatrices
+	int id;
+
+	//offset matrix transforms vertex from model space to bone space
+	glm::mat4 offset;
+
+};
 
 class Model 
 {
@@ -39,7 +48,7 @@ public:
     }
 
     // draws the model, and thus all its meshes
-    void Draw(Shader &shader)
+    void Draw(Canis::Shader &shader)
     {
         for(unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].Draw(shader);

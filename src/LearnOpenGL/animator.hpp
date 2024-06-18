@@ -76,5 +76,4 @@ private:
 	Animation* m_CurrentAnimation;
 	float m_CurrentTime;
 	float m_DeltaTime;
-
 };

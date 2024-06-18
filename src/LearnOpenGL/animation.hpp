@@ -6,7 +6,6 @@
 #include <assimp/scene.h>
 #include "bone.hpp"
 #include <functional>
-#include "animdata.hpp"
 #include "model_animation.hpp"
 
 struct AssimpNodeData
@@ -36,9 +35,7 @@ public:
 		ReadMissingBones(animation, *model);
 	}
 
-	~Animation()
-	{
-	}
+	~Animation(){}
 
 	Bone* FindBone(const std::string& name)
 	{
