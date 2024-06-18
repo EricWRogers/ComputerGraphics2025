@@ -8,6 +8,8 @@
 #include <functional>
 #include "model_animation.hpp"
 
+#include "../Canis/Debug.hpp"
+
 struct AssimpNodeData
 {
 	glm::mat4 transformation;
@@ -27,6 +29,7 @@ public:
 		const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
 		assert(scene && scene->mRootNode);
 		auto animation = scene->mAnimations[0];
+        Canis::Log("number of animations: " + std::to_string(scene->mNumAnimations));
 		m_Duration = animation->mDuration;
 		m_TicksPerSecond = animation->mTicksPerSecond;
 		aiMatrix4x4 globalTransformation = scene->mRootNode->mTransformation;
