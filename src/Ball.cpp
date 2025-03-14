@@ -4,6 +4,9 @@
 
 using namespace glm;
 
+extern int leftScore;
+extern int rightScore;
+
 void Ball::Start() {
     name = "Ball";
     position = vec3(window->GetScreenWidth() * 0.5f, window->GetScreenHeight() * 0.5f, 0.0f);
@@ -11,7 +14,6 @@ void Ball::Start() {
 }
 
 void Ball::Update(float _dt) {
-    window->SetWindowName("Pong");
 
     if (dir == vec2(0.0f))
     {
@@ -35,10 +37,13 @@ void Ball::Update(float _dt) {
     if (position.x > window->GetScreenWidth() - (scale.x * 0.5f)) {
         position = vec3(window->GetScreenWidth()*0.5f, window->GetScreenHeight()*0.5f, 0.0f);
         dir = vec2(0.0f);
+        rightScore++;
     }
     if (position.x < scale.x * 0.5f) {
         position = vec3(window->GetScreenWidth()*0.5f, window->GetScreenHeight()*0.5f, 0.0f);
         dir = vec2(0.0f);
+        leftScore++;
+
     }
 
     // detect if ball hits left paddle
@@ -64,6 +69,7 @@ void Ball::Draw() {mat4 transform = mat4(1.0f);
     // set shader variables
     shader.SetVec4("COLOR", color);
     shader.SetMat4("TRANSFORM", transform);
+    shader.SetBool("useTexture", true);
 }
 
 void Ball::OnDestroy() {

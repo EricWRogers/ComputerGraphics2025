@@ -20,6 +20,10 @@
 // git fetch
 // git pull
 
+// score tracking variables
+int leftScore = 0; 
+int rightScore = 0;
+
 // move out to external class
 unsigned int vertexShader;
 unsigned int VBO, VAO, EBO;
@@ -72,22 +76,25 @@ int main(int argc, char *argv[])
 
     Ball *ball = world.Instantiate<Ball>();
     ball->shader = spriteShader;
+    ball->shader.SetBool("useTexture", true);
     ball->texture = texture;
 
     {
         Paddle *paddle = world.Instantiate<Paddle>();
         paddle->shader = spriteShader;
-        paddle->texture = texture;
+        //paddle->texture = texture;
         paddle->name = "RightPaddle";
         paddle->position = glm::vec3(window.GetScreenWidth() - (10.0f*0.5f), window.GetScreenHeight() * 0.5f, 0.0f);
+        paddle->color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f); // Red
     }
 
     {
         Paddle *paddle = world.Instantiate<Paddle>();
         paddle->shader = spriteShader;
-        paddle->texture = texture;
+        //paddle->texture = texture;
         paddle->name = "LeftPaddle";
         paddle->position = glm::vec3(10.0f*0.5f, window.GetScreenHeight() * 0.5f, 0.0f);
+        paddle->color = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f); // Blue
     }
 
     while (inputManager.Update(window.GetScreenWidth(), window.GetScreenHeight()))
@@ -106,6 +113,14 @@ int main(int argc, char *argv[])
         view = inverse(view);
 
         world.Update(view, projection, deltaTime);
+
+        // update the window title bar with the current score
+        window.SetWindowName("Pong - Score: Blue " + std::to_string(rightScore) + " | Red " + std::to_string(leftScore));
+
+        if (leftScore >= 5 || rightScore >= 5)
+        {
+            break;
+        }
 
         window.SwapBuffer();
 

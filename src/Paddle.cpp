@@ -38,6 +38,7 @@ void Paddle::Draw() {
     // set shader variables
     shader.SetVec4("COLOR", color);
     shader.SetMat4("TRANSFORM", transform);
+    shader.SetBool("useTexture", false);
 }
 
 void Paddle::OnDestroy() {
