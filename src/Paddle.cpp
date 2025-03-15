@@ -39,6 +39,7 @@ void Paddle::Draw() {
     shader.SetVec4("COLOR", color);
     shader.SetMat4("TRANSFORM", transform);
     shader.SetBool("useTexture", false);
+    shader.SetBool("isScrolling", false);
 }
 
 void Paddle::OnDestroy() {

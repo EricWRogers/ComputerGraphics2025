@@ -70,6 +70,8 @@ void Ball::Draw() {mat4 transform = mat4(1.0f);
     shader.SetVec4("COLOR", color);
     shader.SetMat4("TRANSFORM", transform);
     shader.SetBool("useTexture", true);
+    shader.SetInt("texture1", 0);
+    shader.SetBool("isScrolling", false);
 }
 
 void Ball::OnDestroy() {

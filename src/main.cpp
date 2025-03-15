@@ -15,6 +15,7 @@
 #include "Entity.hpp"
 #include "Ball.hpp"
 #include "Paddle.hpp"
+#include "Background.hpp"
 
 // git restore .
 // git fetch
@@ -57,6 +58,7 @@ int main(int argc, char *argv[])
     InitModel();
 
     Canis::GLTexture texture = Canis::LoadImageGL("assets/textures/ForcePush.png", true);
+    Canis::GLTexture texture1 = Canis::LoadImageGL("assets/textures/TilePattern.png", true); 
 
     int textureSlots = 0;
 
@@ -65,19 +67,32 @@ int main(int argc, char *argv[])
     Canis::Log(std::to_string(textureSlots));
 
     spriteShader.SetInt("texture1", 0);
+    spriteShader.SetInt("texture2", 1);
 
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, texture.id);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture1.id);\
+
 
     World world;
     world.VAO = VAO;
     world.window = &window;
     world.inputManager = &inputManager;
 
+
+    Background *background = world.Instantiate<Background>();
+    background->shader = spriteShader;
+    background->texture = texture1;
+    background->shader.SetBool("useTexture", true);
+    background->shader.SetBool("isScrolling", true);
+
     Ball *ball = world.Instantiate<Ball>();
     ball->shader = spriteShader;
     ball->shader.SetBool("useTexture", true);
     ball->texture = texture;
+    background->shader.SetBool("isScrolling", false);
 
     {
         Paddle *paddle = world.Instantiate<Paddle>();
@@ -86,6 +101,7 @@ int main(int argc, char *argv[])
         paddle->name = "RightPaddle";
         paddle->position = glm::vec3(window.GetScreenWidth() - (10.0f*0.5f), window.GetScreenHeight() * 0.5f, 0.0f);
         paddle->color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f); // Red
+        paddle->shader.SetBool("isScrolling", false);
     }
 
     {
@@ -95,6 +111,7 @@ int main(int argc, char *argv[])
         paddle->name = "LeftPaddle";
         paddle->position = glm::vec3(10.0f*0.5f, window.GetScreenHeight() * 0.5f, 0.0f);
         paddle->color = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f); // Blue
+        paddle->shader.SetBool("isScrolling", false);
     }
 
     while (inputManager.Update(window.GetScreenWidth(), window.GetScreenHeight()))
