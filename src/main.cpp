@@ -39,9 +39,21 @@ int main(int argc, char *argv[])
 #endif
 {
     Canis::Init();
-
     Canis::Window window;
-    window.Create("Computer Graphics 2025", 640, 640, 0);
+
+    // *** CHANGES - UPDATED to dynamically change window size based on display size so it works with my 1440p
+    SDL_DisplayMode displayMode;
+    if (SDL_GetCurrentDisplayMode(0, &displayMode) == 0) {
+
+        float windowSize = 640;
+        float windowHeight = (windowSize * ((float)displayMode.h / 1080.0f));
+        float windowWidth  = (windowSize * ((float)displayMode.w / 1920.0f));
+
+        window.Create("Computer Graphics 2025", windowWidth, windowHeight, 0);
+
+    }
+    // *** END OF CHANGES
+
 
     Canis::InputManager inputManager;
     Canis::FrameRateManager frameRateManager;
@@ -57,8 +69,8 @@ int main(int argc, char *argv[])
 
     InitModel();
 
-    Canis::GLTexture texture = Canis::LoadImageGL("assets/textures/ForcePush.png", true);
-    Canis::GLTexture texture1 = Canis::LoadImageGL("assets/textures/TilePattern.png", true); 
+    //Canis::GLTexture texture = Canis::LoadImageGL("assets/textures/ForcePush.png", true);
+    Canis::GLTexture texture1 = Canis::LoadImageGL("assets/textures/TilePattern.png", true);
 
     int textureSlots = 0;
 
@@ -69,11 +81,11 @@ int main(int argc, char *argv[])
     spriteShader.SetInt("texture1", 0);
     spriteShader.SetInt("texture2", 1);
 
-    glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_2D, texture.id);
+    //glActiveTexture(GL_TEXTURE0 + 0);
+    //glBindTexture(GL_TEXTURE_2D, texture.id);
 
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture1.id);\
+    glActiveTexture(GL_TEXTURE1);                    
+    glBindTexture(GL_TEXTURE_2D, texture1.id);
 
 
     World world;
@@ -81,18 +93,20 @@ int main(int argc, char *argv[])
     world.window = &window;
     world.inputManager = &inputManager;
 
-
-    Background *background = world.Instantiate<Background>();
-    background->shader = spriteShader;
-    background->texture = texture1;
-    background->shader.SetBool("useTexture", true);
-    background->shader.SetBool("isScrolling", true);
-
-    Ball *ball = world.Instantiate<Ball>();
-    ball->shader = spriteShader;
-    ball->shader.SetBool("useTexture", true);
-    ball->texture = texture;
-    background->shader.SetBool("isScrolling", false);
+    {
+        Background *background = world.Instantiate<Background>();
+        background->shader = spriteShader;
+        background->texture = texture1;
+        background->shader.SetBool("useTexture", true);
+        background->shader.SetBool("isScrolling", true);
+    
+    }
+    
+    {
+        Ball *ball = world.Instantiate<Ball>();
+        ball->shader = spriteShader;
+        ball->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    }
 
     {
         Paddle *paddle = world.Instantiate<Paddle>();

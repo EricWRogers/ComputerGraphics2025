@@ -1,19 +1,39 @@
 #include "Ball.hpp"
-
 #include "Paddle.hpp"
+#include <SDL.h>
 
 using namespace glm;
 
 extern int leftScore;
 extern int rightScore;
 
-void Ball::Start() {
+void Ball::Start() 
+{
     name = "Ball";
     position = vec3(window->GetScreenWidth() * 0.5f, window->GetScreenHeight() * 0.5f, 0.0f);
     scale = vec3(100.0f, 100.0f, 0.0f);
 }
 
-void Ball::Update(float _dt) {
+void Ball::Update(float _dt) 
+{
+    if (inputManager->GetKey(SDL_SCANCODE_SPACE))
+    {
+        isMoving = true;
+    }
+    if (isMoving)
+    {
+        // OBJECT MOVING
+        int mouseX, mouseY;
+        SDL_GetMouseState(&mouseX, &mouseY);
+        cursorPosition = glm::vec2(mouseX, mouseY);
+        cursorPosition.y = window->GetScreenHeight() - cursorPosition.y; // correct y position
+
+        vec2 direction = cursorPosition - glm::vec2(position.x, position.y);
+
+        dir = glm::normalize(direction);
+        position += vec3(dir.x, dir.y, 0.0f) * speed * _dt;
+
+    }
 
     if (dir == vec2(0.0f))
     {
@@ -69,7 +89,7 @@ void Ball::Draw() {mat4 transform = mat4(1.0f);
     // set shader variables
     shader.SetVec4("COLOR", color);
     shader.SetMat4("TRANSFORM", transform);
-    shader.SetBool("useTexture", true);
+    shader.SetBool("useTexture", false);
     shader.SetInt("texture1", 0);
     shader.SetBool("isScrolling", false);
 }
