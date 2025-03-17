@@ -59,13 +59,15 @@ void Ball::Update(float _dt)
         position = vec3(window->GetScreenWidth()*0.5f, window->GetScreenHeight()*0.5f, 0.0f);
         dir = vec2(0.0f);
         rightScore++;
-        
+        Ball *ball = world ->FindByName<Ball>("Ball");
+        ball->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); //ball back to white
     }
     if (position.x < scale.x * 0.5f) {
         position = vec3(window->GetScreenWidth()*0.5f, window->GetScreenHeight()*0.5f, 0.0f);
         dir = vec2(0.0f);
         leftScore++;
-
+        Ball *ball = world ->FindByName<Ball>("Ball");
+        ball->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); //ball back to white
     }
 
     // detect if ball hits left paddle
@@ -102,5 +104,6 @@ void Ball::Draw() {mat4 transform = mat4(1.0f);
 }
 
 void Ball::OnDestroy() {
+    
     
 }
