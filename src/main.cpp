@@ -105,6 +105,7 @@ int main(int argc, char *argv[])
     {
         Ball *ball = world.Instantiate<Ball>();
         ball->shader = spriteShader;
+        ball->name = "Ball";
         ball->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
@@ -148,7 +149,11 @@ int main(int argc, char *argv[])
         // update the window title bar with the current score
         window.SetWindowName("Pong - Score: Blue " + std::to_string(rightScore) + " | Red " + std::to_string(leftScore));
 
-        if (leftScore >= 5 || rightScore >= 5)
+        if (leftScore >= 5) 
+        {
+            break;
+        }
+        if (rightScore >= 5)
         {
             break;
         }
