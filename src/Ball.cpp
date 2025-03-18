@@ -61,13 +61,16 @@ void Ball::Update(float _dt)
         rightScore++;
         Ball *ball = world ->FindByName<Ball>("Ball");
         ball->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); //ball back to white
+        ball->speed = 100.0f; //changes  ball speed back to 100.0f
     }
+    
     if (position.x < scale.x * 0.5f) {
         position = vec3(window->GetScreenWidth()*0.5f, window->GetScreenHeight()*0.5f, 0.0f);
         dir = vec2(0.0f);
         leftScore++;
         Ball *ball = world ->FindByName<Ball>("Ball");
         ball->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); //ball back to white
+        ball->speed = 100.0f; //changes  ball speed back to 100.0f
     }
 
     // detect if ball hits left paddle
@@ -76,6 +79,7 @@ void Ball::Update(float _dt)
         dir.x = abs(dir.x);
         Ball *ball = world ->FindByName<Ball>("Ball");
         ball->color = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+        ball->speed = speed * 1.2f; //increases balls speed each time it hits a paddle
     }
 
     // detect if ball hits right paddle
@@ -84,6 +88,7 @@ void Ball::Update(float _dt)
         dir.x = abs(dir.x) * -1.0f;
         Ball *ball = world ->FindByName<Ball>("Ball");
         ball->color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+        ball->speed = speed * 1.2f; //increases balls speed each time it hits a paddle
     }
 
     if (dir != vec2(0.0f))
